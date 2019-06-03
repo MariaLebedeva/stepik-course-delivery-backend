@@ -8,7 +8,10 @@ alive_state = False
 workhours_open = "10:00"
 workhours_closes = "22:00"
 promotion_text = "Сегодня скидка 15% по промокоду stepik"
-promocodes = [{"code": "STEPIK", "discount": 15}, {"code": "DELIVERY", "discount": 10}]
+promocodes = [
+    {"code": "stepik", "discount": 15},
+    {"code": "delivery", "discount": 10}
+]
 
 promotions = [
     "Скидка 15% по промокоду STEPIK",
@@ -35,10 +38,11 @@ def promotion():
 
 @app.route("/promo/<code>")
 def checkpromo(code):
+    code = code.lower()
     for promocode in promocodes:
         if promocode["code"] == code:
-            return json.dumps()
-    return json.dumps()
+            return json.dumps({"valid": True, "discount": promocode['discount']})
+    return json.dumps({"valid": False})
 
 
 app.run("0.0.0.0", 8000)
