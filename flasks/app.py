@@ -31,7 +31,9 @@ def read_file(filename):
 
 
 def write_file(filename, data):
-    pass
+    opened_file = open(filename, 'w')
+    opened_file.write(json.dumps(data))
+    opened_file.close()
 
 
 @app.route("/alive")
@@ -56,8 +58,7 @@ def promotion():
 @app.route("/promo/<code>")
 def checkpromo(code):
     code = code.lower()
-    promo_file = open('promo.json', 'r')
-    promocodes = json.loads(promo_file.read())
+    promocodes = read_file('promo.json')
     for promocode in promocodes:
         if promocode["code"] == code:
 
@@ -65,9 +66,7 @@ def checkpromo(code):
 
             users_data[USER_ID]["promocode"] = code
 
-            users_file_w = open('users.json', 'w')
-            users_file_w.write(json.dumps(users_data))
-            users_file_w.close()
+            write_file('users.json', users_data)
 
             return json.dumps({"valid": True, "discount": promocode['discount']})
     return json.dumps({"valid": False})
