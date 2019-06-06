@@ -23,29 +23,33 @@ meals = [{
 }]
 
 
+def read_file(filename):
+    opened_file = open(filename, 'r')
+    data = json.loads(opened_file.read())
+    opened_file.close()
+    return data
+
+
+def write_file(filename, data):
+    pass
+
+
 @app.route("/alive")
 def alive():
-    config_file = open('config.json', 'r')
-    config_content = config_file.read()
-    data = json.loads(config_content)
-    config_file.close()
-    return json.dumps({"alive":data['alive']})
+    data = read_file('config.json')
+    return json.dumps({"alive": data['alive']})
 
 
 @app.route("/workhours")
 def workhours():
-    config_file = open('config.json', 'r')
-    config_content = config_file.read()
-    data = json.loads(config_content)
-    config_file.close()
+    data = read_file('config.json')
     return json.dumps(data['workhours'])
 
 
 @app.route("/promotion")
 def promotion():
     promotion_number = random.randint(0, 2)
-    promotion_file = open("promotions.json", 'r')
-    promotions = json.loads(promotion_file.read())
+    promotions = read_file('promotions.json')
     return json.dumps(promotions[promotion_number])
 
 
@@ -57,9 +61,7 @@ def checkpromo(code):
     for promocode in promocodes:
         if promocode["code"] == code:
 
-            users_file_r = open('users.json', 'r')
-            users_data = json.loads(users_file_r.read())
-            users_file_r.close()
+            users_data = read_file('users.json')
 
             users_data[USER_ID]["promocode"] = code
 
@@ -73,17 +75,11 @@ def checkpromo(code):
 
 @app.route("/meals")
 def meals_route():
-    users_file_r = open('users.json', 'r')
-    users_data = json.loads(users_file_r.read())
-    users_file_r.close()
-
-    discount = 0
+    users_data = read_file('users.json')
 
     promocode = users_data[USER_ID]['promocode']
     if promocode != None:
-        promo_file_r = open('promo.json', 'r')
-        promocodes = json.loads(promo_file_r.read())
-        promo_file_r.close()
+        promocodes = read_file('promo.json')
 
         discount = 0
 
