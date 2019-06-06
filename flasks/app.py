@@ -5,6 +5,7 @@ import random
 app = Flask(__name__)
 
 USER_ID = '1'
+promo_flag = True
 
 meals = [{
     "title": "Chinken",
@@ -74,10 +75,11 @@ def checkpromo(code):
 
 @app.route("/meals")
 def meals_route():
+    global promo_flag
     users_data = read_file('users.json')
 
     promocode = users_data[USER_ID]['promocode']
-    if promocode != None:
+    if (promocode is not None) and promo_flag:
         promocodes = read_file('promo.json')
 
         discount = 0
@@ -87,6 +89,7 @@ def meals_route():
                 discount = p['discount']
         for m in meals:
             m['price'] = (1 - discount/100)*m['price']
+        promo_flag = False
     return json.dumps(meals)
 
 
