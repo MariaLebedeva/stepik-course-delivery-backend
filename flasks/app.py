@@ -61,6 +61,13 @@ def init_db():
     """)
 
     c.execute("""
+    CREATE TABLE IF NOT EXISTS promotions(
+        id integer PRIMARY KEY,
+        promotion text
+    )
+    """)
+
+    c.execute("""
     INSERT INTO meals VALUES (1, "Chicken", 1, "", 20.0, 1)
     """)
 
@@ -78,6 +85,18 @@ def init_db():
 
     c.execute("""
     INSERT INTO users VALUES (1, null)
+    """)
+
+    c.execute("""
+        INSERT INTO promotions VALUES (1, "Discount 15% with STEPIK promocode")
+    """)
+
+    c.execute("""
+        INSERT INTO promotions VALUES (2, "Discount 10% with DELIVERY promocode")
+    """)
+
+    c.execute("""
+        INSERT INTO promotions VALUES (3, "Discount 5% for all drinks")
     """)
 
     c.connection.commit()
@@ -111,9 +130,14 @@ def workhours():
 
 @app.route("/promotion")
 def promotion():
-    promotion_number = random.randint(0, 2)
-    promotions = read_file('promotions.json')
-    return json.dumps(promotions[promotion_number])
+    promotion_number = random.randint(1, 3)
+
+    c = get_cursor()
+    c.execute("""
+    SELECT promotion FROM promotions WHERE id = ?
+    """, (promotion_number,))
+    result = c.fetchone()
+    return json.dumps({"promotion": result[0]})
 
 
 @app.route("/promo/<code>")
@@ -148,7 +172,7 @@ def meals_route():
         WHERE id = ?
     )
     """, (int(USER_ID),))
-    result = c .fetchone()
+    result = c.fetchone()
 
     discount = 0
     if result is not None:
@@ -168,6 +192,7 @@ def meals_route():
         })
 
     return json.dumps(meals)
+
 
 if not os.path.exists("database.db"):
     init_db()
