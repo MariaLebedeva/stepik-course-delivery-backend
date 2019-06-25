@@ -257,6 +257,27 @@ def orders():
         return json.dumps({'order_id': new_order_id})
 
 
+@app.route("/activeorder")
+def activeorder():
+    c = get_cursor()
+    c.execute("""
+    SELECT id, ordered, meals, summ, status, address FROM orders
+    WHERE status == "accepted" AND user_id == ?
+    """, (int(USER_ID),))
+    result = c.fetchone()
+    if result is not None:
+        order_id, ordered, meals, summ, status, address = result
+        return json.dumps({
+            'id':order_id,
+            'ordered': ordered,
+            'meals': meals,
+            'summ': summ,
+            'status': status,
+            'address': address
+        })
+    return "", 404
+
+
 if not os.path.exists("database.db"):
     init_db()
 
