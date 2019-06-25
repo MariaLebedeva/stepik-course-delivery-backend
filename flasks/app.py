@@ -1,6 +1,7 @@
 import os
+import uuid
 
-from flask import Flask
+from flask import Flask, request
 import json
 import random
 import sqlite3
@@ -68,6 +69,18 @@ def init_db():
     """)
 
     c.execute("""
+        CREATE TABLE IF NOT EXISTS orders(
+            id text PRIMARY KEY,
+            ordered text,
+            meals text,
+            summ real,
+            status text,
+            address text,
+            user_id int           
+        )
+    """)
+
+    c.execute("""
     INSERT INTO meals VALUES (1, "Chicken", 1, "", 20.0, 1)
     """)
 
@@ -88,15 +101,15 @@ def init_db():
     """)
 
     c.execute("""
-        INSERT INTO promotions VALUES (1, "Discount 15% with STEPIK promocode")
+    INSERT INTO promotions VALUES (1, "Discount 15% with STEPIK promocode")
     """)
 
     c.execute("""
-        INSERT INTO promotions VALUES (2, "Discount 10% with DELIVERY promocode")
+    INSERT INTO promotions VALUES (2, "Discount 10% with DELIVERY promocode")
     """)
 
     c.execute("""
-        INSERT INTO promotions VALUES (3, "Discount 5% for all drinks")
+    INSERT INTO promotions VALUES (3, "Discount 5% for all drinks")
     """)
 
     c.connection.commit()
@@ -192,6 +205,56 @@ def meals_route():
         })
 
     return json.dumps(meals)
+
+
+@app.route("/orders", methods=["GET", "POST"])
+def orders():
+    c = get_cursor()
+
+    if request.method == "GET":
+        user_orders = []
+        for order in c.execute("""SELECT id, ordered, meals, summ, status, address FROM orders WHERE user_id = ?""", (int(USER_ID),)):
+            order_id, ordered, order_meals, summ, status, address = order
+            user_orders.append({
+                'id': order_id,
+                'ordered': ordered,
+                'meals': order_meals,
+                'summ': summ,
+                'status': status,
+                'address': address
+            })
+        return json.dumps(user_orders)
+    elif request.method == "POST":
+        raw_data = request.data.decode("utf-8")
+        data = json.loads(raw_data)
+
+        user_promocode = data['promocode']
+
+        c.execute("""
+        SELECT discount FROM promocodes
+        WHERE code = ?
+        """, (user_promocode,))
+        result = c.fetchone()
+
+        discount = 0
+        if result is not None:
+            discount = result[0]
+
+        summ = 0.0
+        for user_meal_id in data['meals']:
+            c.execute("""SELECT price FROM meals WHERE id == ?""", (user_meal_id,))
+            price = c.fetchone()[0]
+            summ += price * (1.0 - discount/100)
+
+        new_order_id = str(uuid.uuid4())
+        new_order = [new_order_id, "", str(data['meals']), summ, "accepted", "", int(USER_ID)]
+
+        c.execute("""INSERT INTO orders VALUES (?, ?, ?, ?, ?, ?, ?)""", new_order)
+
+        c.connection.commit()
+        c.connection.close()
+
+        return json.dumps({'order_id': new_order_id})
 
 
 if not os.path.exists("database.db"):
