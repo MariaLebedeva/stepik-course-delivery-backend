@@ -278,6 +278,20 @@ def activeorder():
     return "", 404
 
 
+@app.route("/order/<order_id>", methods = ["DELETE"])
+def one_order(order_id):
+    c = get_cursor()
+    c.execute("""
+    UPDATE orders
+    SET status = "cancelled"
+    WHERE id = ?
+    """, (order_id,))
+    c.connection.commit()
+    c.connection.close()
+
+
+
+
 if not os.path.exists("database.db"):
     init_db()
 
