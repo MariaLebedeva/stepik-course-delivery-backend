@@ -129,6 +129,10 @@ def write_file(filename, data):
     opened_file.close()
 
 
+def fire_discount(price, discount):
+    return price * (1.0 - discount / 100)
+
+
 @app.route("/alive")
 def alive():
     data = read_file('config.json')
@@ -200,7 +204,7 @@ def meals_route():
             'title': title,
             'available': bool(available),
             'picture': picture,
-            'price': price * (1.0 - discount / 100),
+            'price': fire_discount(discount, price),
             'category': category
         })
 
@@ -244,7 +248,7 @@ def orders():
         for user_meal_id in data['meals']:
             c.execute("""SELECT price FROM meals WHERE id == ?""", (user_meal_id,))
             price = c.fetchone()[0]
-            summ += price * (1.0 - discount/100)
+            summ += fire_discount(price, discount)
 
         new_order_id = str(uuid.uuid4())
         new_order = [new_order_id, "", str(data['meals']), summ, "accepted", "", int(USER_ID)]
