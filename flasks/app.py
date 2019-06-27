@@ -261,18 +261,50 @@ def orders():
         return json.dumps({'order_id': new_order_id})
 
 
-@app.route("/activeorder")
+@app.route("/order/<order_id>", methods=["DELETE"])
+def one_order(order_id):
+    c = get_cursor()
+    if c.execute("""SELECT * FROM orders WHERE status == "accepted" AND id == ?""", (order_id,)).rowcount > 0:
+        c.execute("""
+        UPDATE orders
+        SET status = "cancelled"
+        WHERE id = ?
+        """, (order_id,))
+        c.connection.commit()
+        c.connection.close()
+        return "True"
+    return "False", 404
+
+
+@app.route("/activeorder", methods=["GET", "DELETE"])
 def activeorder():
     c = get_cursor()
+
+    if request.method == "GET":
+        return find_active_order(c)
+    elif request.method == "DELETE":
+        if find_active_order(c)[0] is not "":
+            c.execute("""
+            UPDATE orders
+            SET status = "cancelled"
+            WHERE status == "accepted" AND user_id == ?
+            """, (int(USER_ID),))
+            c.connection.commit()
+            c.connection.close()
+            return "True"
+        return "False", 404
+
+
+def find_active_order(c):
     c.execute("""
-    SELECT id, ordered, meals, summ, status, address FROM orders
-    WHERE status == "accepted" AND user_id == ?
-    """, (int(USER_ID),))
+        SELECT id, ordered, meals, summ, status, address FROM orders
+        WHERE status == "accepted" AND user_id == ?
+        """, (int(USER_ID),))
     result = c.fetchone()
     if result is not None:
         order_id, ordered, meals, summ, status, address = result
         return json.dumps({
-            'id':order_id,
+            'id': order_id,
             'ordered': ordered,
             'meals': meals,
             'summ': summ,
@@ -280,20 +312,6 @@ def activeorder():
             'address': address
         })
     return "", 404
-
-
-@app.route("/order/<order_id>", methods = ["DELETE"])
-def one_order(order_id):
-    c = get_cursor()
-    c.execute("""
-    UPDATE orders
-    SET status = "cancelled"
-    WHERE id = ?
-    """, (order_id,))
-    c.connection.commit()
-    c.connection.close()
-
-
 
 
 if not os.path.exists("database.db"):
