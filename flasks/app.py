@@ -1,6 +1,8 @@
 import os
+import urllib
 import uuid
 
+import requests
 from flask import Flask, request
 import json
 import random
@@ -37,7 +39,7 @@ def init_db():
     c = get_cursor()
     c.execute("""
     CREATE TABLE IF NOT EXISTS meals(
-        id integer PRIMARY KEY,
+        id integer PRIMARY KEY AUTOINCREMENT NOT NULL,
         title text,
         available int,
         picture text,
@@ -81,14 +83,6 @@ def init_db():
     """)
 
     c.execute("""
-    INSERT INTO meals VALUES (1, "Chicken", 1, "", 20.0, 1)
-    """)
-
-    c.execute("""
-    INSERT INTO meals VALUES (2, "Milk", 1, "", 10.0, 1)
-    """)
-
-    c.execute("""
     INSERT INTO promocodes VALUES (1, "stepik", 15.0)
     """)
 
@@ -113,6 +107,30 @@ def init_db():
     """)
 
     c.connection.commit()
+    c.connection.close()
+
+
+def fill_database():
+    api_key = "7ee1cc6c2e4d5ecf10b9ab99b16c7e16"
+    key_words = "cheese"
+    page = 1
+    params = {"key": api_key, "q": key_words, "page": page}
+    url_string = "https://www.food2fork.com/api/search?" + urllib.parse.urlencode(params)
+    r = requests.get(url_string)
+    data = r.json()
+    c = get_cursor()
+    for page in range(1,5):
+        for item in data['recipes']:
+            c.execute("""
+            INSERT INTO meals (title, available, picture, price, category) VALUES (?, ?, ?, ?, ?)
+            """, [
+                item['title'],
+                1,
+                item['image_url'],
+                item['social_rank'] + random.randint(0, 100),
+                1
+            ])
+            c.connection.commit()
     c.connection.close()
 
 
@@ -157,7 +175,7 @@ def promotion():
     return json.dumps({"promotion": result[0]})
 
 
-@app.route("/promo/<code>")
+@app.route("/promocode/<code>")
 def promo(code):
     c = get_cursor()
     c.execute("""
@@ -217,7 +235,8 @@ def orders():
 
     if request.method == "GET":
         user_orders = []
-        for order in c.execute("""SELECT id, ordered, meals, summ, status, address FROM orders WHERE user_id = ?""", (int(USER_ID),)):
+        for order in c.execute("""SELECT id, ordered, meals, summ, status, address FROM orders WHERE user_id = ?""",
+                               (int(USER_ID),)):
             order_id, ordered, order_meals, summ, status, address = order
             user_orders.append({
                 'id': order_id,
@@ -316,5 +335,6 @@ def find_active_order(c):
 
 if not os.path.exists("database.db"):
     init_db()
+    fill_database()
 
 app.run("0.0.0.0", 8000)
