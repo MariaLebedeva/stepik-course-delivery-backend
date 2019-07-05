@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "title": "Шашлык из курицы",
+    "picture": "https://www.delivery-club.ru/media/cms/relation_product/28959/306865343_s.jpg?1556199659",
+    "price": 119,
+    "discount": 10,
+    "available": true,
+    "promoted": true,
+    "category": 2
+  },
+  {
+    "id": 2,
+    "title": "Куриная отбивная на гриле",
+    "picture": "https://www.delivery-club.ru/media/cms/relation_product/28959/306941407_s.jpg?1556199659",
+    "price": 169,
+    "discount": 0,
+    "available": true,
+    "promoted": false,
+    "category": 2
+  },
+  {
+    "id": 3,
+    "title": "Борщ",
+    "picture": "https://www.delivery-club.ru/media/cms/relation_product/28959/306996527_s.jpg?1556199659",
+    "price": 109,
+    "discount": 10,
+    "available": true,
+    "promoted": true,
+    "category": 2
+  }
+]
