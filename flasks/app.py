@@ -4,11 +4,13 @@ import uuid
 
 import requests
 from flask import Flask, request
+from flask_cors import CORS
 import json
 import random
 import sqlite3
 
 app = Flask(__name__)
+CORS(app)
 
 USER_ID = '1'
 
@@ -337,4 +339,4 @@ if not os.path.exists("database.db"):
     init_db()
     fill_database()
 
-app.run("0.0.0.0", 8000)
+app.run("0.0.0.0", 8090)
