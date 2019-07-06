@@ -14,22 +14,6 @@ CORS(app)
 
 USER_ID = '1'
 
-meals = [{
-    "title": "Chicken",
-    "id": 1,
-    "available": True,
-    "picture": "",
-    "price": 20.0,
-    "category": 1
-}, {
-    "title": "Milk",
-    "id": 2,
-    "available": True,
-    "picture": "",
-    "price": 10.0,
-    "category": 1
-}]
-
 
 def get_cursor():
     connection = sqlite3.connect("database.db")
@@ -134,6 +118,11 @@ def fill_database():
             ])
             c.connection.commit()
     c.connection.close()
+
+
+if not os.path.exists("database.db"):
+    init_db()
+    fill_database()
 
 
 def read_file(filename):
@@ -334,9 +323,5 @@ def find_active_order(c):
         })
     return "", 404
 
-
-if not os.path.exists("database.db"):
-    init_db()
-    fill_database()
 
 app.run("0.0.0.0", 8090)
