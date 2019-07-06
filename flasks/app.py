@@ -105,7 +105,7 @@ def fill_database():
     r = requests.get(url_string)
     data = r.json()
     c = get_cursor()
-    for page in range(1,5):
+    for page in range(1, 5):
         for item in data['recipes']:
             c.execute("""
             INSERT INTO meals (title, available, picture, price, category) VALUES (?, ?, ?, ?, ?)
@@ -213,7 +213,7 @@ def meals_route():
             'title': title,
             'available': bool(available),
             'picture': picture,
-            'price': fire_discount(discount, price),
+            'price': fire_discount(price, discount),
             'category': category
         })
 
