@@ -190,7 +190,7 @@ def promo(code):
     """, (promo_code, int(USER_ID)))
     c.connection.commit()
     c.connection.close()
-    return promo_discount, 200
+    return str(promo_discount), 200
 
 
 @app.route("/meals")
@@ -247,17 +247,18 @@ def orders():
         raw_data = request.data.decode("utf-8")
         data = json.loads(raw_data)
 
-        user_promocode = data['promocode']
-
-        c.execute("""
-        SELECT discount FROM promocodes
-        WHERE code = ?
-        """, (user_promocode,))
-        result = c.fetchone()
-
         discount = 0
-        if result is not None:
-            discount = result[0]
+
+        key_exists = 'promocode' in data
+        if key_exists:
+            c.execute("""
+            SELECT discount FROM promocodes
+            WHERE code = ?
+            """, (data['promocode'],))
+            result = c.fetchone()
+
+            if result is not None:    # лишняя проверка, тк если промокода нет, то в словаре нет ключа 'promocode'
+                discount = result[0]
 
         summ = 0.0
         for user_meal_id in data['meals']:
