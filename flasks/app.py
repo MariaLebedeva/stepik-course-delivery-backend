@@ -45,7 +45,11 @@ def init_db():
     c.execute("""
     CREATE TABLE IF NOT EXISTS users(
         id integer PRIMARY KEY,
-        promocode text
+        promocode text,
+        name text,
+        address text,
+        phone text,
+        orders text
     )
     """)
 
@@ -78,7 +82,7 @@ def init_db():
     """)
 
     c.execute("""
-    INSERT INTO users VALUES (1, null)
+    INSERT INTO users VALUES (1, null, "Mary Swan", "Saint Petersburg", null, null)
     """)
 
     c.execute("""
@@ -304,6 +308,32 @@ def activeorder():
             c.connection.close()
             return "True"
         return "False", 404
+
+
+@app.route("/profile", methods=["GET", "PATCH"])
+def profile_route():
+    c = get_cursor()
+
+    if request.method == "GET":
+        c.execute("""
+        SELECT name, address, phone, orders FROM users
+        WHERE id == ?
+        """, (int(USER_ID),))
+        name, address, phone, orders = c.fetchone()
+        return json.dumps({"name": name, "address": address, "phone": phone, "orders": orders})
+    elif request.method == "PATCH":
+        raw_data = request.data.decode("utf-8")
+        data = json.loads(raw_data)
+        c.execute("""
+        UPDATE users
+        SET name = ?, address = ?, phone = ?
+        WHERE id == ?
+        """, (data['name'], data['address'], data['phone'], USER_ID))
+        c.connection.commit()
+        c.connection.close()
+        return "True"
+    else:
+        return "False"
 
 
 def find_active_order(c):
