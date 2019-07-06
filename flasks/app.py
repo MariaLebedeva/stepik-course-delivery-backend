@@ -52,7 +52,8 @@ def init_db():
     c.execute("""
     CREATE TABLE IF NOT EXISTS promotions(
         id integer PRIMARY KEY,
-        promotion text
+        title text,
+        description text
     )
     """)
 
@@ -81,15 +82,15 @@ def init_db():
     """)
 
     c.execute("""
-    INSERT INTO promotions VALUES (1, "Discount 15% with STEPIK promocode")
+    INSERT INTO promotions VALUES (1, "Get discount if you study with Stepik", "Discount 15% with STEPIK promocode")
     """)
 
     c.execute("""
-    INSERT INTO promotions VALUES (2, "Discount 10% with DELIVERY promocode")
+    INSERT INTO promotions VALUES (2, "Get you discount if you love to eat", "Discount 10% with DELIVERY promocode")
     """)
 
     c.execute("""
-    INSERT INTO promotions VALUES (3, "Discount 5% for all drinks")
+    INSERT INTO promotions VALUES (3, "Get you discount if you love to drink", "Discount 5% for all drinks")
     """)
 
     c.connection.commit()
@@ -160,10 +161,10 @@ def promotion():
 
     c = get_cursor()
     c.execute("""
-    SELECT promotion FROM promotions WHERE id = ?
+    SELECT title, description FROM promotions WHERE id = ?
     """, (promotion_number,))
-    result = c.fetchone()
-    return json.dumps({"promotion": result[0]})
+    title, description = c.fetchone()
+    return json.dumps({"title": title, "description": description})
 
 
 @app.route("/promocode/<code>")
@@ -175,7 +176,7 @@ def promo(code):
 
     result = c.fetchone()
     if result is None:
-        return json.dumps({"valid": False})
+        return "Invalid code", 404
 
     promo_id, promo_code, promo_discount = result
     c.execute("""
@@ -185,7 +186,7 @@ def promo(code):
     """, (promo_code, int(USER_ID)))
     c.connection.commit()
     c.connection.close()
-    return json.dumps({"valid": True, "discount": promo_discount})
+    return promo_discount, 200
 
 
 @app.route("/meals")
