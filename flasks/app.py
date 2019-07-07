@@ -8,6 +8,7 @@ from flask_cors import CORS
 import json
 import random
 import sqlite3
+import time
 
 app = Flask(__name__)
 CORS(app)
@@ -267,7 +268,14 @@ def orders():
             summ += fire_discount(price, discount)
 
         new_order_id = str(uuid.uuid4())
-        new_order = [new_order_id, "", str(data['meals']), summ, "accepted", "", int(USER_ID)]
+
+        address = c.execute("""
+        SELECT address FROM users
+        WHERE id == ?
+        """, (USER_ID))
+
+        ordered = time.time() + random.randint(1800, 7200)
+        new_order = [new_order_id, ordered, str(data['meals']), summ, "accepted", str(address), int(USER_ID)]
 
         c.execute("""INSERT INTO orders VALUES (?, ?, ?, ?, ?, ?, ?)""", new_order)
 
@@ -335,6 +343,15 @@ def profile_route():
         return "True"
     else:
         return "False"
+
+
+@app.route("/delivers")
+def delivers():
+    c = get_cursor()
+    data = json.loads(find_active_order(c))
+    if data is not None:
+        return json.dumps({"time": int(data['ordered'])})
+    return "", 404
 
 
 def find_active_order(c):
