@@ -16,6 +16,7 @@ def deploy(c):
     print("Copy sources")
     conn.put("flasks/app.py")
     conn.put("flasks/config.json")
+    # conn.put("dist/")
 
     print("Install requirements")
     conn.sudo("pip3 install Flask Flask-CORS")
