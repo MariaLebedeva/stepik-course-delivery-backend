@@ -238,7 +238,7 @@ def orders():
             user_orders.append({
                 'id': order_id,
                 'ordered': ordered,
-                'meals': order_meals,
+                'meals': json.loads(order_meals),
                 'summ': summ,
                 'status': status,
                 'address': address
@@ -365,7 +365,7 @@ def find_active_order(c):
         return json.dumps({
             'id': order_id,
             'ordered': ordered,
-            'meals': meals,
+            'meals': json.loads(meals),
             'summ': summ,
             'status': status,
             'address': address
