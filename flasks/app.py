@@ -275,7 +275,7 @@ def orders():
         """, (USER_ID))
 
         ordered = time.time() + random.randint(1800, 7200)
-        new_order = [new_order_id, ordered, str(data['meals']), summ, "accepted", str(address), int(USER_ID)]
+        new_order = [new_order_id, ordered, str(data['meals']), summ, "ACCEPTED", str(address), int(USER_ID)]
 
         c.execute("""INSERT INTO orders VALUES (?, ?, ?, ?, ?, ?, ?)""", new_order)
 
@@ -288,10 +288,10 @@ def orders():
 @app.route("/order/<order_id>", methods=["DELETE"])
 def one_order(order_id):
     c = get_cursor()
-    if c.execute("""SELECT * FROM orders WHERE status == "accepted" AND id == ?""", (order_id,)).rowcount > 0:
+    if c.execute("""SELECT * FROM orders WHERE status == "ACCEPTED" AND id == ?""", (order_id,)).rowcount > 0:
         c.execute("""
         UPDATE orders
-        SET status = "cancelled"
+        SET status = "CANCELLED"
         WHERE id = ?
         """, (order_id,))
         c.connection.commit()
@@ -310,8 +310,8 @@ def activeorder():
         if find_active_order(c)[0] is not "":
             c.execute("""
             UPDATE orders
-            SET status = "cancelled"
-            WHERE status == "accepted" AND user_id == ?
+            SET status = "CANCELLED"
+            WHERE status == "ACCEPTED" AND user_id == ?
             """, (int(USER_ID),))
             c.connection.commit()
             c.connection.close()
@@ -357,7 +357,7 @@ def delivers():
 def find_active_order(c):
     c.execute("""
         SELECT id, ordered, meals, summ, status, address FROM orders
-        WHERE status == "accepted" AND user_id == ?
+        WHERE status == "ACCEPTED" AND user_id == ?
         """, (int(USER_ID),))
     result = c.fetchone()
     if result is not None:
