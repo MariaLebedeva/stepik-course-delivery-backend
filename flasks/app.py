@@ -65,7 +65,7 @@ def init_db():
     c.execute("""
         CREATE TABLE IF NOT EXISTS orders(
             id text PRIMARY KEY,
-            ordered text,
+            ordered real,
             meals text,
             summ real,
             status text,
@@ -348,9 +348,9 @@ def profile_route():
 @app.route("/delivers")
 def delivers():
     c = get_cursor()
-    data = json.loads(find_active_order(c))
-    if data is not None:
-        return json.dumps({"time": int(data['ordered'])})
+    response = find_active_order(c)
+    if response[0] is not "":
+        return json.dumps({"time": int(json.loads(response)['ordered'])})
     return "", 404
 
 
